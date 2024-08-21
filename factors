@@ -1,11 +1,19 @@
+#!/usr/bin/python3
+# prime numbers factorozation
+
 import sys
+import signal
+
+class TimeoutException(Exception):
+    pass
+
+def timeout_handler(signum, frame):
+    raise TimeoutException
 
 def factorize(n):
-    # Start with the smallest divisor
     for i in range(2, int(n**0.5) + 1):
         if n % i == 0:
             return (i, n // i)
-    # If no divisor is found, return the number itself (which should not happen with n > 1)
     return (1, n)
 
 def main(filename):
@@ -14,12 +22,24 @@ def main(filename):
     
     for line in lines:
         n = int(line.strip())
-        p, q = factorize(n)
-        print(f"{n}={p}*{q}")
+        try:
+            p, q = factorize(n)
+            print(f"{n}={p}*{q}")
+        except TimeoutException:
+            print(f"{n}=Unable to factor within time limit")
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
         print("Usage: factors <file>")
         sys.exit(1)
-    
-    main(sys.argv[1])
+
+    # Set a 5-second time limit for the entire script execution
+    signal.signal(signal.SIGALRM, timeout_handler)
+    signal.alarm(5)
+
+    try:
+        main(sys.argv[1])
+    except TimeoutException:
+        print("Factorization exceeded the time limit")
+    finally:
+        signal.alarm(0)  # Disable the alarm
