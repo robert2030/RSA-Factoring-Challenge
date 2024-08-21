@@ -1,18 +1,40 @@
-#!/usr/bin/python3
-from sys import argv
+import sys
 
-with open(argv[1]) as f:
-    for line in f:
-        num = int(line)
-        print("{:d}=".format(num), end="")
-        if num % 2 == 0:
-            print("{}*2".format(num//2))
-            continue
-        for i in range(3, num, 2):
-            if num % i == 0:
-                factor = num//i
-                for j in range(3, factor, 2):
-                    if factor % j == 0 or i % j == 0:
-                        break
-                print("{}*{}".format(factor, i))
-                break
+def is_prime(num):
+    if num <= 1:
+        return False
+    if num <= 3:
+        return True
+    if num % 2 == 0 or num % 3 == 0:
+        return False
+    i = 5
+    while i * i <= num:
+        if num % i == 0 or num % (i + 2) == 0:
+            return False
+        i += 6
+    return True
+
+def factorize_rsa(n):
+    # Check divisibility by smaller numbers first
+    for i in range(2, int(n**0.5) + 1):
+        if n % i == 0:
+            p = i
+            q = n // i
+            if is_prime(p) and is_prime(q):
+                return (p, q)
+    # If no factors found, n might be prime itself, which shouldn't happen in the challenge context
+    return (n, 1)
+
+def main(filename):
+    with open(filename, 'r') as f:
+        n = int(f.readline().strip())
+    
+    p, q = factorize_rsa(n)
+    print(f"{n}={p}*{q}")
+
+if __name__ == "__main__":
+    if len(sys.argv) != 2:
+        print("Usage: rsa <file>")
+        sys.exit(1)
+    
+    main(sys.argv[1])
